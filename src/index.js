@@ -82,8 +82,9 @@ function receivePeerOuter(conn, peerObj, self) {
 		if (data[0] === 'a') {
 			return;
 		}
-		let index = Number(data.split('||')[0]);
-	
+		const index = Number(data.split('||')[0]);
+		const draw = data.split('||')[2] == 'false' ? false : true;
+		console.log(draw);
 		const history = self.state.history.slice(0, self.state.stepNumber + 1);
 		const current = history[history.length - 1];
 		const squares = current.squares.slice();
@@ -96,6 +97,7 @@ function receivePeerOuter(conn, peerObj, self) {
 		  stepNumber: history.length,
 		  xIsNext: !self.state.xIsNext,
 		  lastMoveIndex: self.state.lastMoveIndex.concat(index),
+			isDraw: draw,
 		  isUserTurn: true
 		});
 	});
@@ -153,14 +155,10 @@ class Game extends React.Component {
 
 	// Match is draw
 	if (filledSquares + 1 === squares.length && !lookAhead) {
-	  this.setState({
-	    history: history.concat([{
-		  squares: squares
-	 	}]), 
-		isDraw: true,
-		stepNumber: history.length,
-		lastMoveIndex: this.state.lastMoveIndex.concat(i)
-	  });
+	  this.setState({isDraw: true}, () => {
+			// Callback send is needed because state is not updated asynchronously
+			connObj.send('||||' + this.state.isDraw);
+		});
 	// Match is won / clicked on a filled field / not user's turn
 	} else if (calculateWinner(squares) || squares[i] || !this.state.isUserTurn) {
       return;
@@ -168,7 +166,7 @@ class Game extends React.Component {
 
 	// Update states to render UI; send data to destination peer to display user's move
 	squares[i] = this.state.xIsNext ? 'X' : 'O';
-	connObj.send(i + '||' + squares[i]); // format: [0-9](X|O)
+	connObj.send(i + '||' + squares[i] + '||' + this.state.isDraw); // format: [0-9](X|O)
 	 this.setState({
 	  history: history.concat([{
 		squares: squares
