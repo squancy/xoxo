@@ -184,11 +184,11 @@ class Game extends React.Component {
 
     // Update states to render UI; send data to destination peer to display user's move
     squares[i] = this.state.xIsNext ? "X" : "O";
-    connObj.send(i + "||" + squares[i] + "||" + this.state.isDraw); // format: [0-9](X|O)
+    connObj.send(i + "||" + squares[i] + "||" + this.state.isDraw); 
     setStateAfterClick(this, this.state.isDraw, i, !this.state.isUserTurn, history, squares); 
   }
 
-  // Implement 'time travel'; highlight the button clciked
+  // Implement 'time travel'; highlight the button clicked
   jumpTo(step) {
     _("btn_" + step).style.backgroundColor = "blue";
     for (let i = 0; i < this.state.history.length; i++) {
