@@ -77,6 +77,28 @@ function RecUI(props) {
   return <p>You are connected to {props.id}</p>;
 }
 
+function createSquareVars(self) {
+	const history = self.state.history.slice(0, self.state.stepNumber + 1);
+  const current = history[history.length - 1];
+  const squares = current.squares.slice();
+	return [history, squares];
+}
+
+function setStateAfterClick(self, draw, i, turn, history, squares) {
+	self.setState({
+      history: history.concat([
+        {
+          squares: squares
+        }
+      ]),
+      stepNumber: history.length,
+      xIsNext: !self.state.xIsNext,
+      lastMoveIndex: self.state.lastMoveIndex.concat(i),
+      isDraw: draw,
+      isUserTurn: turn
+    });
+}
+
 /* 
 	Fires immediately when page is visited; listens for data send to user
 	Renders the changes made by the destination peer
@@ -88,25 +110,11 @@ function receivePeerOuter(conn, peerObj, self) {
     }
     const index = Number(data.split("||")[0]);
     const draw = data.split("||")[2] == "false" ? false : true;
-    console.log(draw);
-    const history = self.state.history.slice(0, self.state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
+   	const [history, squares] = createSquareVars(self);
 
     squares[index] = self.state.xIsNext ? "X" : "O";
-    self.setState({
-      history: history.concat([
-        {
-          squares: squares
-        }
-      ]),
-      stepNumber: history.length,
-      xIsNext: !self.state.xIsNext,
-      lastMoveIndex: self.state.lastMoveIndex.concat(index),
-      isDraw: draw,
-      isUserTurn: true
-    });
-  });
+		setStateAfterClick(self, draw, index, true, history, squares);	    
+	});
 }
 
 /*
@@ -149,10 +157,8 @@ class Game extends React.Component {
       return;
     }
 
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
-    const filledSquares = squares.filter(sq => sq).length;
+    const [history, squares] = createSquareVars(this);
+		const filledSquares = squares.filter(sq => sq).length;
     const connObj = this.state.connState;
 
     // Perform a lookahead to properly decide if match is draw
@@ -179,17 +185,7 @@ class Game extends React.Component {
     // Update states to render UI; send data to destination peer to display user's move
     squares[i] = this.state.xIsNext ? "X" : "O";
     connObj.send(i + "||" + squares[i] + "||" + this.state.isDraw); // format: [0-9](X|O)
-    this.setState({
-      history: history.concat([
-        {
-          squares: squares
-        }
-      ]),
-      stepNumber: history.length,
-      xIsNext: !this.state.xIsNext,
-      lastMoveIndex: this.state.lastMoveIndex.concat(i),
-      isUserTurn: !this.state.isUserTurn
-    });
+    setStateAfterClick(this, this.state.isDraw, i, !this.state.isUserTurn, history, squares); 
   }
 
   // Implement 'time travel'; highlight the button clciked
