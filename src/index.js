@@ -110,7 +110,7 @@ function receivePeerOuter(conn, peerObj, self) {
       return;
     }
     const index = Number(data.split("||")[0]);
-    const draw = data.split("||")[2] == "false" ? false : true;
+    const draw = data.split("||")[2] === "false" ? false : true;
    	const [history, squares] = createSquareVars(self);
   
     squares[index] = self.state.xIsNext ? "X" : "O";
