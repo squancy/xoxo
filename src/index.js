@@ -26,7 +26,7 @@ function calculateWinner(squares) {
 // Component for creating an individual square
 function Square(props) {
   return (
-    <button id={props.id} className="square" onClick={props.onClick}>
+    <button id={'sqr_' + props.id} className="square" onClick={props.onClick}>
       {props.value}
     </button>
   );
@@ -84,6 +84,7 @@ function createSquareVars(self) {
 	return [history, squares];
 }
 
+// Set states for both peers
 function setStateAfterClick(self, draw, i, turn, history, squares) {
 	self.setState({
       history: history.concat([
@@ -111,7 +112,7 @@ function receivePeerOuter(conn, peerObj, self) {
     const index = Number(data.split("||")[0]);
     const draw = data.split("||")[2] == "false" ? false : true;
    	const [history, squares] = createSquareVars(self);
-
+  
     squares[index] = self.state.xIsNext ? "X" : "O";
 		setStateAfterClick(self, draw, index, true, history, squares);	    
 	});
@@ -171,8 +172,11 @@ class Game extends React.Component {
     if (filledSquares + 1 === squares.length && !lookAhead) {
       this.setState({ isDraw: true }, () => {
         // Callback send is needed because state is not updated asynchronously
-        connObj.send("||||" + this.state.isDraw);
+        squares[i] = this.state.xIsNext ? "X" : "O";
+        connObj.send(i + "||" + squares[i] + "||" + this.state.isDraw); 
+        setStateAfterClick(this, this.state.isDraw, i, !this.state.isUserTurn, history, squares); 
       });
+      return;
       // Match is won / clicked on a filled field / not user's turn
     } else if (
       calculateWinner(squares) ||
@@ -188,13 +192,12 @@ class Game extends React.Component {
     setStateAfterClick(this, this.state.isDraw, i, !this.state.isUserTurn, history, squares); 
   }
 
-  // Implement 'time travel'; highlight the button clicked
+  // Implement 'time travel'; highlight the button clciked
   jumpTo(step) {
-    _("btn_" + step).style.backgroundColor = "blue";
+    _("btn_" + step).style.color = "#d8d8d8";
     for (let i = 0; i < this.state.history.length; i++) {
-      if (i === 1) continue;
       if (i !== step) {
-        _("btn_" + i).style.backgroundColor = "white";
+        _("btn_" + i).style.color = "white";
       }
     }
     this.setState({
@@ -230,15 +233,18 @@ class Game extends React.Component {
           this.setState({ peerError: err.type });
           return;
         });
+
         peer.on("closed", () => {
           this.setState({ peerClosed: true });
           peer.destroy();
           return;
         });
+
         peer.on("disconnected", () => {
           this.setState({ peerDisconnected: true });
           return;
         });
+
         peer.on("connection", val => {
           receivePeerOuter(val, this.state.peerObj, this);
         });
@@ -292,19 +298,19 @@ class Game extends React.Component {
 
     // Get all the moves so far; do not show them until game has ended
     const moves = history.map((step, move) => {
-      if (move === 1) return;
       const row = Math.floor(this.state.lastMoveIndex[move] / 3);
       const col =
         this.state.lastMoveIndex[move] !== 0
           ? this.state.lastMoveIndex[move] % 3
           : 0;
       const desc = move
-        ? "Go to move #" + (move - 1) + " (" + row + "; " + col + ")"
+        ? "Go to move #" + (move) + " (" + row + "; " + col + ")"
         : "Go to game start";
 
       return (
         <li key={move} id={move}>
-          <button id={"btn_" + move} onClick={() => this.jumpTo(move)}>
+          <button id={"btn_" + move} 
+            className="w3-button timeTravel" onClick={() => this.jumpTo(move)}>
             {desc}
           </button>
         </li>
@@ -318,7 +324,7 @@ class Game extends React.Component {
       if (_("hide") !== null) _("hide").setAttribute("id", "show");
     } else if (winner) {
       for (let sq of winner[0]) {
-        _(sq).style.backgroundColor = "yellow";
+        _('sqr_' + sq).style.color = "red";
       }
       status = "Winner: " + winner[1];
       if (_("hide") !== null) _("hide").setAttribute("id", "show");
@@ -336,38 +342,44 @@ class Game extends React.Component {
 
     return (
       <React.Fragment>
-        <div className="game">
-          <div className="game-board">
-            <Board
-              squares={current.squares}
-              onClick={i => this.handleClick(i)}
-            />
+        <div className="verticalCont">
+          <div className="game">
+            <div className="game-board">
+              <Board
+                squares={current.squares}
+                onClick={i => this.handleClick(i)}
+              />
+            </div>
+            <div className="game-info"></div>
           </div>
-          <div className="game-info"></div>
-        </div>
-        <br />
-        <div>{status}</div>
-        <p>My id is {this.state.uid}</p>
-        <input
-          type="text"
-          placeholder="id"
-          id="idInput"
-          onChange={this.setConnId}
-        />
-        <button onClick={this.handleConnection} id="connBtn">
-          Connect
-        </button>
-        {this.state.connectYourself ? (
-          <p>Cannot connect to yourself. Try again.</p>
-        ) : (
-          ""
-        )}
-        {!destMessage ? <p>Not connected</p> : destMessage}
-        {err ? <p>Server returned with an error: {err}</p> : ""}
-        {closedConn ? <p>Oops... your peer closed the connection.</p> : ""}
-        {discConn ? <p>Oops... your peer has disconnected.</p> : ""}
-        {browserSupport ? <p>Current browser is not supported.</p> : ""}
-        <ol id="hide">{moves}</ol>
+          <br />
+          <div>{status}</div>
+          <p>My id is <b>{this.state.uid}</b></p>
+          <input
+            type="text"
+            placeholder="Enter destination peer ID"
+            id="idInput"
+            className="w3-input w3-border w3-round"
+            onChange={this.setConnId}
+          />
+          <button onClick={this.handleConnection}
+            className='w3-button w3-round-xxlarge w3-border w3-border-white w3-border-white'
+            id="connBtn"
+          >
+            Connect
+          </button>
+          {this.state.connectYourself ? (
+            <p>Cannot connect to yourself. Try again.</p>
+          ) : (
+            ""
+          )}
+          {!destMessage ? <p>Not connected</p> : destMessage}
+          {err ? <p>Server returned with an error: {err}</p> : ""}
+          {closedConn ? <p>Oops... your peer closed the connection.</p> : ""}
+          {discConn ? <p>Oops... your peer has disconnected.</p> : ""}
+          {browserSupport ? <p>Current browser is not supported.</p> : ""}
+          <ol id="hide">{moves}</ol>
+        </div>  
       </React.Fragment>
     );
   }
