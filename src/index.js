@@ -283,7 +283,7 @@ class Game extends React.Component {
   }
 
   setConnId(e) {
-    this.setState({ connId: e.target.value });
+    this.setState({ connId: e.target.value.toLowerCase() });
   }
 
   render() {
