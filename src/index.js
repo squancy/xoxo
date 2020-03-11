@@ -78,15 +78,15 @@ function RecUI(props) {
 }
 
 function createSquareVars(self) {
-	const history = self.state.history.slice(0, self.state.stepNumber + 1);
+  const history = self.state.history.slice(0, self.state.stepNumber + 1);
   const current = history[history.length - 1];
   const squares = current.squares.slice();
-	return [history, squares];
+  return [history, squares];
 }
 
 // Set states for both peers
 function setStateAfterClick(self, draw, i, turn, history, squares) {
-	self.setState({
+  self.setState({
       history: history.concat([
         {
           squares: squares
@@ -101,8 +101,8 @@ function setStateAfterClick(self, draw, i, turn, history, squares) {
 }
 
 /* 
-	Fires immediately when page is visited; listens for data send to user
-	Renders the changes made by the destination peer
+  Fires immediately when page is visited; listens for data send to user
+  Renders the changes made by the destination peer
 */
 function receivePeerOuter(conn, peerObj, self) {
   conn.on("data", function(data) {
@@ -111,15 +111,15 @@ function receivePeerOuter(conn, peerObj, self) {
     }
     const index = Number(data.split("||")[0]);
     const draw = data.split("||")[2] === "false" ? false : true;
-   	const [history, squares] = createSquareVars(self);
+     const [history, squares] = createSquareVars(self);
   
     squares[index] = self.state.xIsNext ? "X" : "O";
-		setStateAfterClick(self, draw, index, true, history, squares);	    
-	});
+    setStateAfterClick(self, draw, index, true, history, squares);      
+  });
 }
 
 /*
-	Main component; renders whole UI & utilizes the components declared above
+  Main component; renders whole UI & utilizes the components declared above
 */
 class Game extends React.Component {
   constructor(props) {
@@ -159,7 +159,7 @@ class Game extends React.Component {
     }
 
     const [history, squares] = createSquareVars(this);
-		const filledSquares = squares.filter(sq => sq).length;
+    const filledSquares = squares.filter(sq => sq).length;
     const connObj = this.state.connState;
 
     // Perform a lookahead to properly decide if match is draw
@@ -262,11 +262,11 @@ class Game extends React.Component {
       return;
     }
     /*
-			peerObj: window.Peer ...
-			connId: destination peer ID
-			uid: my ID
-			conn: peer.connect(connId); ...
-		*/
+      peerObj: window.Peer ...
+      connId: destination peer ID
+      uid: my ID
+      conn: peer.connect(connId); ...
+    */
     let connId = this.state.connId;
     let peer = this.state.peerObj;
     let conn = this.state.connState;
