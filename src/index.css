@@ -42,11 +42,11 @@ button {
 }
 
 #show {
-	display: block;
+  display: block;
 }
 
 #hide {
-	display: none;
+  display: none;
 }
 
 ol, ul {
@@ -122,7 +122,7 @@ ol, ul {
   float: left;
 }
 
-@media screen and (max-width: 768px) {	
+@media screen and (max-width: 768px) {  
   .verticalCont {
     width: 100%;
   }
@@ -135,4 +135,4 @@ ol, ul {
     font-size: 64px;
     height: 80px;
   }
-}	
+}  
