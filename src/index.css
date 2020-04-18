@@ -5,6 +5,11 @@ body {
   background-color: black;
 }
 
+.scoreboard {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
 .verticalCont {
   width: 50%;
   margin: 0 auto;
@@ -79,6 +84,14 @@ ol, ul {
   border-right: 5px solid white !important;
 }
 
+.nameInput {
+  padding: 10px;
+  outline: none;
+  border: 0;
+  border-radius: 15px;
+  margin-left: 10px;
+}
+
 #sqr_0, #sqr_1, #sqr_2, #sqr_3, #sqr_5 {
   border-bottom: 5px solid white !important;
 }
@@ -101,7 +114,6 @@ ol, ul {
 
 .game {
   display: flex;
-  flex-direction: row;
   justify-content: center;
 }
 
